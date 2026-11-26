@@ -1,0 +1,15 @@
+# AdWaste Intelligence — runtime dependencies for Streamlit Community Cloud
+# Python 3.11+ | no OS-level binaries required (no packages.txt needed)
+
+streamlit>=1.38.0
+pandas>=2.0.0
+numpy>=1.24.0
+plotly>=5.18.0
+openpyxl>=3.1.2
+
+# Optional AI layer (BYOK Gemini intent audit). The app works 100% without it.
+google-genai>=1.0.0
+
+# Dev / test only (not required on Streamlit Cloud):
+#   pip install pytest
+#   python -m pytest tests/ -v
