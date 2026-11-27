@@ -1,0 +1,34 @@
+[project]
+name = "adwaste-intelligence"
+version = "1.1.0"
+description = "Google Ads Waste Detector — N-Gram Audit Engine: 1-4 gram search-term waste analysis, converting-query conflict guard, and Excel/Ads Editor exports."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Muhammad Hamid" }]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [".venv", "data", "temp", "assets"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4"]
+ignore = [
+  "E501",  # line length handled conservatively; long SQL/URL/UI strings are allowed
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]
+filterwarnings = [
+  "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["tests/*", "scripts/*"]

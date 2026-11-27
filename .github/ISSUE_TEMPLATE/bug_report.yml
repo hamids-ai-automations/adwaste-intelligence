@@ -1,0 +1,33 @@
+name: Bug Report
+description: Report a parser edge case, n-gram math issue, UI error, or export bug.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting an issue with **AdWaste Intelligence**. Please never upload confidential client Search Terms CSVs here—use anonymized sample rows instead.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include anonymized header/row snippets if this involves Google Ads CSV/XLSX parsing.
+      placeholder: |
+        1. Upload anonymized report / click Load Demo Account
+        2. Set sidebar threshold...
+        3. Observe error...
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Python version, OS, and whether running locally or on Streamlit Community Cloud.
+      placeholder: "Python 3.12, Streamlit 1.67, Windows / Community Cloud"

@@ -1,0 +1,19 @@
+name: Feature Request
+description: Suggest a new waste-detection rule, export channel, or workflow improvement.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or PPC workflow need
+      description: What Google Ads workflow or waste-detection problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How should the feature behave in the UI or export outputs?
+    validations:
+      required: true
