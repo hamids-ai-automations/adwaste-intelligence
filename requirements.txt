@@ -8,4 +8,4 @@ plotly>=5.18,<8.0
 openpyxl>=3.1.2,<4.0
 
 # Optional AI layer (BYOK Gemini intent audit). The app works 100% without it.
-google-genai>=1.0,<4.0
+google-genai>=3.6.1,<4.0
