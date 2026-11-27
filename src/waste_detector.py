@@ -32,7 +32,6 @@ from src.constants import (
     GEMINI_INTENT_CATEGORIES,
     GEMINI_MODEL_DEFAULT,
     PRESET_REASON_LABELS,
-    PRESET_WASTE_DICTIONARIES,
 )
 from src.ngram_engine import normalize_term
 

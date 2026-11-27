@@ -29,8 +29,8 @@ import pandas as pd
 from src.constants import (
     CANONICAL_COLUMNS,
     CURRENCY_TOKENS,
-    NUMERIC_PLACEHOLDERS,
     NUMERIC_COLUMNS,
+    NUMERIC_PLACEHOLDERS,
     REQUIRED_COLUMNS,
 )
 
@@ -200,7 +200,7 @@ def _read_excel_rows(data: bytes) -> list[list[str]]:
 
 
 def _detect_encoding(data: bytes) -> str:
-    if data.startswith(codecs.BOM_UTF16_LE) or data.startswith(codecs.BOM_UTF16_BE):
+    if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
         return "utf-16"
     try:
         data.decode("utf-8-sig")

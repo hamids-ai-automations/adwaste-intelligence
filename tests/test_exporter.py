@@ -30,7 +30,7 @@ def test_copy_paste_block():
     assert '"cheap shoes"' in lines
     assert '"free shipping"' in lines
     assert '"red boots"' in lines
-    assert len([l for l in lines if l.startswith('"')]) == 3
+    assert len([line for line in lines if line.startswith('"')]) == 3
 
 
 def test_editor_csv_campaign_level():

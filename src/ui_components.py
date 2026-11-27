@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -192,11 +194,24 @@ def render_reason_legend() -> None:
     )
 
 
+def _chrome_extension_url() -> str:
+    env_url = os.environ.get("CHROME_EXTENSION_URL", "").strip()
+    if env_url:
+        return env_url
+    if CHROME_EXTENSION_URL:
+        return CHROME_EXTENSION_URL
+    try:
+        return str(st.secrets.get("CHROME_EXTENSION_URL", "") or "").strip()
+    except (FileNotFoundError, KeyError, RuntimeError):
+        return ""
+
+
 def render_sidebar_cta() -> None:
+    ext_url = _chrome_extension_url()
     extension_html = (
-        f'<a class="cta-btn" href="{CHROME_EXTENSION_URL}" target="_blank" '
+        f'<a class="cta-btn" href="{ext_url}" target="_blank" '
         'rel="noopener noreferrer">Open Chrome extension</a>'
-        if CHROME_EXTENSION_URL
+        if ext_url
         else '<span class="ext-text">Chrome Web Store listing launching soon — '
         "watch this space.</span>"
     )
@@ -328,8 +343,8 @@ def spend_allocation_chart(
     fig.update_layout(
         template="plotly_white",
         height=320,
-        margin=dict(l=10, r=10, t=10, b=10),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.12, x=0.5, xanchor="center"),
+        margin={"l": 10, "r": 10, "t": 10, "b": 10},
+        legend={"orientation": "h", "yanchor": "bottom", "y": -0.12, "x": 0.5, "xanchor": "center"},
     )
     return fig
 
@@ -358,9 +373,9 @@ def top_wasted_ngrams_chart(df: pd.DataFrame, currency: str = "$") -> go.Figure:
     fig.update_layout(
         template="plotly_white",
         height=max(340, 28 * len(data)),
-        margin=dict(l=10, r=10, t=10, b=10),
+        margin={"l": 10, "r": 10, "t": 10, "b": 10},
         xaxis_title=f"Wasted spend ({symbol})",
-        yaxis=dict(autorange="reversed", tickfont_size=11.5),
+        yaxis={"autorange": "reversed", "tickfont_size": 11.5},
     )
     return fig
 
@@ -395,8 +410,8 @@ def campaign_waste_chart(df: pd.DataFrame, currency: str = "$") -> go.Figure:
         template="plotly_white",
         barmode="group",
         height=340,
-        margin=dict(l=10, r=10, t=10, b=10),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0, xanchor="left"),
+        margin={"l": 10, "r": 10, "t": 10, "b": 10},
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "x": 0, "xanchor": "left"},
         xaxis_tickangle=-18,
     )
     fig.update_yaxes(title=f"Spend ({symbol})")

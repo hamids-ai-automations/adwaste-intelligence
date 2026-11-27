@@ -3,7 +3,12 @@
 import pandas as pd
 import pytest
 
-from src.ngram_engine import build_ngram_table, extract_ngrams, normalize_term, terms_containing
+from src.ngram_engine import (
+    build_ngram_table,
+    extract_ngrams,
+    normalize_term,
+    terms_containing,
+)
 from src.waste_detector import (
     WasteConfig,
     apply_waste_rules,
@@ -113,14 +118,14 @@ def test_terms_containing_drilldown():
 # Waste rules
 # ---------------------------------------------------------------------------
 def base_config(**overrides):
-    defaults = dict(
-        target_cpa=20.0,
-        cpa_multiplier=2.0,
-        zero_conv_threshold=25.0,
-        min_clicks=3,
-        brand_terms=("flowtrack",),
-        presets={"Job Seekers": ("job", "jobs")},
-    )
+    defaults = {
+        "target_cpa": 20.0,
+        "cpa_multiplier": 2.0,
+        "zero_conv_threshold": 25.0,
+        "min_clicks": 3,
+        "brand_terms": ("flowtrack",),
+        "presets": {"Job Seekers": ("job", "jobs")},
+    }
     defaults.update(overrides)
     return WasteConfig(**defaults)
 

@@ -13,7 +13,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
-from src.constants import APP_NAME, APP_VERSION, AUTHOR_NAME, GITHUB_URL, WHATSAPP_URL
+from src.constants import APP_NAME, AUTHOR_NAME, GITHUB_URL, WHATSAPP_URL
 
 MATCH_TYPES = ("Exact", "Phrase", "Broad")
 LEVELS = ("Account Negative List", "Campaign", "Ad Group")
@@ -251,7 +251,10 @@ def _write_table_sheet(ws, df: pd.DataFrame, column_specs: dict) -> None:
             kind, fmt = column_specs[header]
             if pd.isna(value):
                 value = "" if kind == "text" else 0
-            elif kind in ("money", "float", "int"):
+            elif kind == "int":
+                value = int(round(float(value)))
+                fmt = fmt or "#,##0"
+            elif kind in ("money", "float"):
                 value = float(value)
             else:
                 value = str(value)

@@ -11,7 +11,7 @@ import os
 # ---------------------------------------------------------------------------
 APP_NAME = "AdWaste Intelligence"
 APP_TAGLINE = "Google Ads Waste Detector — N-Gram Audit Engine"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.1.0"
 AUTHOR_NAME = "Muhammad Hamid"
 WHATSAPP_URL = "https://wa.me/923167417135"
 GITHUB_URL = "https://github.com/hamids-ai-automations"
@@ -35,15 +35,23 @@ DEFAULT_EDITOR_ROW_CAP = 1000  # max rows rendered inside st.data_editor
 # Deliberately excludes PPC-intent words such as free / cheap / near / jobs.
 # ---------------------------------------------------------------------------
 STOPWORDS = frozenset(
-    """a about above after again against all am an and any are as at be because
-    been before being below between both but by can could did do does doing
-    down during each few for from further had has have having he her here hers
-    herself him himself his how i if in into is it its itself just ll me more
-    most my myself now of off on once only or other our ours ourselves out over
-    own re s same she should so some such t than that the their theirs them
-    themselves then there these they this those through to too under until up
-    ve very was we were what when where which while who whom why will with you
-    your yours yourself yourselves""".split()
+    {
+        "a", "about", "above", "after", "again", "against", "all", "am", "an",
+        "and", "any", "are", "as", "at", "be", "because", "been", "before",
+        "being", "below", "between", "both", "but", "by", "can", "could",
+        "did", "do", "does", "doing", "down", "during", "each", "few", "for",
+        "from", "further", "had", "has", "have", "having", "he", "her", "here",
+        "hers", "herself", "him", "himself", "his", "how", "i", "if", "in",
+        "into", "is", "it", "its", "itself", "just", "ll", "me", "more",
+        "most", "my", "myself", "now", "of", "off", "on", "once", "only", "or",
+        "other", "our", "ours", "ourselves", "out", "over", "own", "re", "s",
+        "same", "she", "should", "so", "some", "such", "t", "than", "that",
+        "the", "their", "theirs", "them", "themselves", "then", "there",
+        "these", "they", "this", "those", "through", "to", "too", "under",
+        "until", "up", "ve", "very", "was", "we", "were", "what", "when",
+        "where", "which", "while", "who", "whom", "why", "will", "with", "you",
+        "your", "yours", "yourself", "yourselves",
+    }
 )
 
 # ---------------------------------------------------------------------------
@@ -103,8 +111,8 @@ NUMERIC_COLUMNS = ("Cost", "Clicks", "Impr.", "Conversions", "Conv. value")
 # ---------------------------------------------------------------------------
 # Optional Gemini AI intent-audit layer (BYOK)
 # ---------------------------------------------------------------------------
-GEMINI_MODEL_DEFAULT = "gemini-2.0-flash"
-GEMINI_MODELS = ("gemini-2.0-flash", "gemini-2.5-flash", "gemini-2.5-pro")
+GEMINI_MODEL_DEFAULT = "gemini-2.5-flash"
+GEMINI_MODELS = ("gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash")
 GEMINI_BATCH_SIZE = 50
 GEMINI_INTENT_CATEGORIES = (
     "High Commercial Intent",

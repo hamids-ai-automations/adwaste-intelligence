@@ -7,17 +7,14 @@ import pytest
 
 from src.ingestion import MissingColumnsError, load_report, sanitize_number
 
-MESSY_CSV = "\n".join(
-    [
-        "Search terms report",
-        "Oct 1, 2026 - Oct 31, 2026",
-        "Search term,Match type,Campaign,Ad group,Impr.,Clicks,Avg. CPC,Cost,Conversions,Conv. rate,Conv. value,Added/Excluded",
-        '"crm software for small business",Exact,SaaS - NonBrand,AG-2,"3,150",95,"$3.10","$294.50",7,"7.37%","$3,360.00",Added',
-        '"cheap free crm download",Broad,SaaS - NonBrand,AG-1,"1,204",18,"$0.98","$17.64",0,"0.00%","$0.00",--',
-        '"jobs in crm sales",Phrase,SaaS - NonBrand,AG-1,890,12,"$1.40","$16.80",0,"0.00%","$0.00",--',
-        '"Total: Search terms",,,,,,,,"$328.94",0,,"$3,360.00",',
-        "",
-    ]
+MESSY_CSV = (
+    "Search terms report\n"
+    "Oct 1, 2026 - Oct 31, 2026\n"
+    "Search term,Match type,Campaign,Ad group,Impr.,Clicks,Avg. CPC,Cost,Conversions,Conv. rate,Conv. value,Added/Excluded\n"
+    '"crm software for small business",Exact,SaaS - NonBrand,AG-2,"3,150",95,"$3.10","$294.50",7,"7.37%","$3,360.00",Added\n'
+    '"cheap free crm download",Broad,SaaS - NonBrand,AG-1,"1,204",18,"$0.98","$17.64",0,"0.00%","$0.00",--\n'
+    '"jobs in crm sales",Phrase,SaaS - NonBrand,AG-1,890,12,"$1.40","$16.80",0,"0.00%","$0.00",--\n'
+    '"Total: Search terms",,,,,,,,"$328.94",0,,"$3,360.00",\n'
 )
 
 
@@ -42,14 +39,11 @@ def test_messy_csv_headers_totals_and_currency():
 
 
 def test_currency_and_placeholder_sanitization():
-    csv_text = "\n".join(
-        [
-            "Search term,Cost,Clicks,Conversions,Conv. value",
-            'crm aed,"AED 1,234.56",10,0,"--"',
-            'crm euro,"€89.50",5,"--","N/A"',
-            'crm placeholder,"--","< 10%","< 10%","< 10%"',
-            "",
-        ]
+    csv_text = (
+        "Search term,Cost,Clicks,Conversions,Conv. value\n"
+        'crm aed,"AED 1,234.56",10,0,"--"\n'
+        'crm euro,"€89.50",5,"--","N/A"\n'
+        'crm placeholder,"--","< 10%","< 10%","< 10%"\n'
     )
     result = load_report(csv_text.encode("utf-8"), "cur.csv")
     assert result.currency == "AED"
@@ -85,12 +79,9 @@ def test_utf16_tab_delimited():
 
 
 def test_column_alias_mapping():
-    csv_text = "\n".join(
-        [
-            "Search query,Spend,Clicks,Total conv.,Impressions,Conversion value,Campaign name,Ad group name,Search keyword match type",
-            "crm software,250.00,30,2,1200,900.00,SaaS,AG1,Exact",
-            "",
-        ]
+    csv_text = (
+        "Search query,Spend,Clicks,Total conv.,Impressions,Conversion value,Campaign name,Ad group name,Search keyword match type\n"
+        "crm software,250.00,30,2,1200,900.00,SaaS,AG1,Exact\n"
     )
     result = load_report(csv_text.encode("utf-8"), "aliases.csv")
     assert result.df.loc[0, "Cost"] == pytest.approx(250.0)
@@ -102,12 +93,9 @@ def test_column_alias_mapping():
 
 
 def test_missing_optional_columns_default_cleanly():
-    csv_text = "\n".join(
-        [
-            "Search term,Cost,Clicks,Conversions",
-            "crm software,250.00,30,2",
-            "",
-        ]
+    csv_text = (
+        "Search term,Cost,Clicks,Conversions\n"
+        "crm software,250.00,30,2\n"
     )
     result = load_report(csv_text.encode("utf-8"), "minimal.csv")
     assert result.df.loc[0, "Impr."] == 0
@@ -119,12 +107,9 @@ def test_missing_optional_columns_default_cleanly():
 def test_missing_required_raises_and_manual_mapping_resolves():
     # 'Budget' does not match any Cost alias, so the auto-mapper must fail
     # and the manual mapping UI path (column_mapping) must resolve it.
-    csv_text = "\n".join(
-        [
-            "Search term,Budget,Clicks,Conversions",
-            "crm software,250.00,30,2",
-            "",
-        ]
+    csv_text = (
+        "Search term,Budget,Clicks,Conversions\n"
+        "crm software,250.00,30,2\n"
     )
     data = csv_text.encode("utf-8")
     with pytest.raises(MissingColumnsError) as exc:
@@ -137,13 +122,10 @@ def test_missing_required_raises_and_manual_mapping_resolves():
 
 
 def test_ragged_total_row_is_handled():
-    csv_text = "\n".join(
-        [
-            "Search term,Cost,Clicks,Conversions",
-            "crm software,100.00,10,1",
-            '"Total: Search terms",,,',
-            "",
-        ]
+    csv_text = (
+        "Search term,Cost,Clicks,Conversions\n"
+        "crm software,100.00,10,1\n"
+        '"Total: Search terms",,,\n'
     )
     result = load_report(csv_text.encode("utf-8"), "ragged.csv")
     assert len(result.df) == 1

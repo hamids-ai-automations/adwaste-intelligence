@@ -197,7 +197,7 @@ def generate_sample_data(n_rows: int = DEMO_ROWS, seed: int = 42) -> pd.DataFram
         conv_value_range: tuple[float, float],
         match_weights: tuple[float, float, float],
     ) -> None:
-        count = max(1, int(round(count * scale)))
+        count = max(1, round(count * scale))
         made = 0
         attempts = 0
         while made < count and attempts < count * 15:

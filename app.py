@@ -10,9 +10,13 @@ Privacy-first: all processing runs 100% in-memory per session.
 
 from __future__ import annotations
 
+import os
+
 import pandas as pd
 import streamlit as st
+from streamlit.errors import StreamlitAPIException
 
+from src import ui_components as ui
 from src.constants import (
     APP_NAME,
     APP_TAGLINE,
@@ -33,7 +37,12 @@ from src.exporter import (
     safe_filename,
 )
 from src.ingestion import IngestionResult, MissingColumnsError, load_report
-from src.ngram_engine import NGRAM_LEVELS, build_ngram_table, extract_ngrams, terms_containing
+from src.ngram_engine import (
+    NGRAM_LEVELS,
+    build_ngram_table,
+    extract_ngrams,
+    terms_containing,
+)
 from src.sample_data import (
     DEMO_BRAND_TERMS,
     DEMO_CURRENCY,
@@ -45,11 +54,10 @@ from src.waste_detector import (
     GeminiAuditError,
     WasteConfig,
     apply_waste_rules,
-    flag_search_terms,
     find_conflicts,
+    flag_search_terms,
     run_gemini_audit,
 )
-from src import ui_components as ui
 
 st.set_page_config(
     page_title=f"{APP_NAME} | Google Ads Waste Detector",
@@ -91,6 +99,8 @@ def stage_negatives(entries: list[dict]) -> int:
             staged.append(entry)
             existing.add(keyword.lower())
             added += 1
+    if added:
+        st.session_state.pop("staging_editor", None)
     return added
 
 
@@ -216,13 +226,13 @@ def render_mapping_ui() -> None:
     ready = all(v is not None for v in mapping.values())
     cols = st.columns([1, 1])
     if cols[0].button("Run Analysis", type="primary", disabled=not ready,
-                      use_container_width=True):
+                      width="stretch"):
         _process_upload(
             st.session_state["upload_bytes"],
             st.session_state.get("upload_name", "report.csv"),
             {k: v for k, v in mapping.items() if v},
         )
-    if cols[1].button("Discard this file", use_container_width=True):
+    if cols[1].button("Discard this file", width="stretch"):
         st.session_state.pop("pending_mapping_error", None)
         st.session_state.pop("upload_bytes", None)
         st.session_state.pop("upload_name", None)
@@ -275,7 +285,7 @@ def render_landing() -> None:
     if st.button(
         "Load Demo Account (1,500 Search Terms)",
         type="primary",
-        use_container_width=True,
+        width="stretch",
     ):
         _set_data(df=generate_sample_data(), currency=DEMO_CURRENCY,
                   date_range=DEMO_DATE_RANGE, days=DEMO_DAYS)
@@ -295,7 +305,7 @@ def render_landing() -> None:
         ("3. Guard", "Conflict checker cross-checks every staged negative against converting queries before you paste anything."),
         ("4. Export", "Copy-paste block, Google Ads Editor CSV, and a branded multi-tab Excel client audit report."),
     ]
-    for col, (title, text) in zip(cols, steps):
+    for col, (title, text) in zip(cols, steps, strict=True):
         col.markdown(
             f"""
             <div class="kpi-card">
@@ -319,7 +329,7 @@ def build_sidebar(df: pd.DataFrame) -> tuple[WasteConfig, bool]:
             """,
             unsafe_allow_html=True,
         )
-        if st.button("Start over / load a new file", use_container_width=True):
+        if st.button("Start over / load a new file", width="stretch"):
             reset_session()
             st.rerun()
         st.divider()
@@ -437,7 +447,7 @@ def render_overview(analysis: dict, df: pd.DataFrame, currency: str,
         st.markdown('<div class="section-title">Spend allocation</div>', unsafe_allow_html=True)
         st.plotly_chart(
             ui.spend_allocation_chart(converting_spend, flagged_spend, unproven, currency),
-            use_container_width=True,
+            width="stretch",
         )
     with chart2:
         st.markdown('<div class="section-title">Top 15 wasted n-grams</div>', unsafe_allow_html=True)
@@ -451,7 +461,7 @@ def render_overview(analysis: dict, df: pd.DataFrame, currency: str,
         else:
             top15 = combined.sort_values("Wasted Spend", ascending=False).head(15)
             st.plotly_chart(ui.top_wasted_ngrams_chart(top15, currency),
-                            use_container_width=True)
+                            width="stretch")
 
     st.markdown('<div class="section-title">Campaign-level waste breakdown</div>',
                 unsafe_allow_html=True)
@@ -462,7 +472,7 @@ def render_overview(analysis: dict, df: pd.DataFrame, currency: str,
     )
     campaign_view = campaign_total.merge(campaign_waste, on="Campaign", how="left").fillna(0.0)
     st.plotly_chart(ui.campaign_waste_chart(campaign_view, currency),
-                    use_container_width=True)
+                    width="stretch")
 
 
 # ---------------------------------------------------------------------------
@@ -536,7 +546,7 @@ def render_ngram_explorer(analysis: dict, df: pd.DataFrame, currency: str) -> No
         display,
         key=f"ngram_editor_{n}",
         hide_index=True,
-        use_container_width=True,
+        width="stretch",
         height=430,
         disabled=[col for col in display.columns if col != "Add to Negatives"],
         column_config={
@@ -581,7 +591,7 @@ def render_ngram_explorer(analysis: dict, df: pd.DataFrame, currency: str) -> No
             ["Search term", "Campaign", "Ad group", "Match type", "Impr.",
              "Clicks", "Cost", "Conversions", "Conv. value", "Added/Excluded"]
         ].round(2)
-        st.dataframe(detail_view, hide_index=True, use_container_width=True, height=260)
+        st.dataframe(detail_view, hide_index=True, width="stretch", height=260)
         st.caption(
             f"{len(detail):,} raw search terms contain '{selected_ngram}' — "
             f"{ui.fmt_money(float(detail['Cost'].sum()), currency)} spend, "
@@ -634,7 +644,7 @@ def render_term_auditor(analysis: dict, df: pd.DataFrame, currency: str) -> None
         display,
         key="term_editor",
         hide_index=True,
-        use_container_width=True,
+        width="stretch",
         height=430,
         disabled=[col for col in display.columns if col != "Add to Negatives"],
         column_config={
@@ -671,9 +681,12 @@ def render_term_auditor(analysis: dict, df: pd.DataFrame, currency: str) -> None
 
 
 def _gemini_secret_key() -> str:
+    env_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if env_key:
+        return env_key
     try:
-        return str(st.secrets.get("GEMINI_API_KEY", "") or "")
-    except Exception:  # no secrets file configured
+        return str(st.secrets.get("GEMINI_API_KEY", "") or "").strip()
+    except (FileNotFoundError, KeyError, RuntimeError, StreamlitAPIException):
         return ""
 
 
@@ -721,7 +734,7 @@ def render_ai_audit(df: pd.DataFrame) -> None:
 
         if st.session_state.get("ai_audit") is not None:
             audit = st.session_state["ai_audit"]
-            st.dataframe(audit, hide_index=True, use_container_width=True, height=320)
+            st.dataframe(audit, hide_index=True, width="stretch", height=320)
             addable = audit[audit["AI Intent"].isin(["Irrelevant", "Job/Career", "Competitor"])]
             st.caption(
                 f"{len(addable)} terms classified as Irrelevant / Job / Competitor "
@@ -767,7 +780,7 @@ def render_export_builder(analysis: dict, df: pd.DataFrame, currency: str,
         display,
         key="staging_editor",
         hide_index=True,
-        use_container_width=True,
+        width="stretch",
         height=min(120 + 35 * len(display), 420),
         disabled=[col for col in display.columns if col != "Include"],
         column_config={
@@ -816,12 +829,13 @@ def render_export_builder(analysis: dict, df: pd.DataFrame, currency: str,
             f"representing {int(blocked_conv)} conversions and "
             f"{ui.fmt_money(blocked_value, currency)} of conversion value."
         )
-        st.dataframe(conflicts, hide_index=True, use_container_width=True, height=240)
+        st.dataframe(conflicts, hide_index=True, width="stretch", height=240)
         if st.button("Remove Conflicting Negatives", type="primary"):
             bad = set(conflicts["Negative Keyword"].astype(str))
             st.session_state["staged_negatives"] = [
                 item for item in staged if item["keyword"] not in bad
             ]
+            st.session_state.pop("staging_editor", None)
             st.success("Conflicting negatives removed from the staging list.")
             st.rerun()
     else:
@@ -899,7 +913,7 @@ def render_export_builder(analysis: dict, df: pd.DataFrame, currency: str,
             data=editor_csv,
             file_name=f"adwaste_negatives_{safe_filename(level or 'account')}.csv",
             mime="text/csv",
-            use_container_width=True,
+            width="stretch",
             type="primary",
         )
     with download_cols[1]:
@@ -908,7 +922,7 @@ def render_export_builder(analysis: dict, df: pd.DataFrame, currency: str,
             data=xlsx,
             file_name=f"AdWaste_Audit_{pd.Timestamp.now():%Y%m%d}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True,
+            width="stretch",
             type="primary",
         )
 
