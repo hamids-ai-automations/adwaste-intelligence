@@ -5,7 +5,7 @@ streamlit>=1.67,<2.0
 pandas>=2.2,<4.0
 numpy>=1.26,<3.0
 plotly>=5.18,<8.0
-openpyxl>=3.1.2,<4.0
+openpyxl>=3.1.5,<4.0
 
 # Optional AI layer (BYOK Gemini intent audit). The app works 100% without it.
 google-genai>=1.0,<4.0
